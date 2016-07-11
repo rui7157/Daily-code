@@ -52,17 +52,11 @@ class LoginWeibo(object):
         cookie.save(ignore_discard=True, ignore_expires=True)
         with open(os.path.join(os.path.dirname(__file__),"test.html"),"wb") as f:
             f.write(result.read())
-        # import requests 
-        # print requests.get("http://weibo.com/p/1005055887581312/follow?relate=fans").content
         print u"执行完毕"
-# http://login.sina.com.cn/cgi/pin.php?r=98661477&s=0&p=gz-a5b62f7646634dd64e2c0a05308770724ac6
-
     def get_sso(self):
         prelogin_url = 'http://login.sina.com.cn/sso/prelogin.php?entry=weibo&callback=sinaSSO`Controller.preloginCallBack&su=%s&rsakt=mod&checkpin=1&client=ssologin.js(v1.4.18)&_=%s' % (
             base64.b64encode(self.username), int(time.time()*1000))
         sso_data = urllib2.urlopen(prelogin_url).read()
-
-        # sso_data = re.findall(r"sinaSSOController\.preloginCallBack\((.*?)\)", sso_data)[0]
         if sso_data:
             return json.loads(sso_data)
         else:

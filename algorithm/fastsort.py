@@ -3,7 +3,7 @@
 # @Date    : 2016-05-15 12:06:20
 # @Author  : NvRay (nvray@foxmail.com)
 #快速排序
-import generate_num
+import generate_number
 
 
 def quick_sort(lists, left, right):

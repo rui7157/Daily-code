@@ -1,0 +1,4 @@
+requests==2.6.0
+gevent==1.1.1
+QDarkStyle==2.2
+xlwt==1.0.0

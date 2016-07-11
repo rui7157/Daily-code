@@ -82,12 +82,12 @@ class Ui_MainWindows(QtGui.QWidget):
 			self.errorpath()
 			return None
 		if all((self.key,self.url)):
-			data=Query(self.key,self.url).start()
+			data=Query(self.key,self.url).start(concurrent=True)
 			dirpath=QtGui.QFileDialog.getExistingDirectory(self,u"保存路径",os.path.dirname(__file__))
 			with open(os.path.join(str(dirpath),"BaiduQuery.txt"),"w") as f:
 				for key,url_rank in data.items():
 					wrt_data="{key} {url} {rank} \n".format(key=key,url=url_rank[0],rank=url_rank[1])
-					print wrt_data
+					# print wrt_data
 					f.write(wrt_data)
 			QtGui.QMessageBox.information(self,u"提醒",u"保存成功！")		
 		else:

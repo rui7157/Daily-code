@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2016-04-16 17:14:48
 # @Author  : NvRay (nvray@foxmail.com)
-# @Link    :
-# @Version : $Id$
+
 from lxml import etree
 import requests
 import re
@@ -35,7 +34,6 @@ class WeiboLogin(object):
 
     def get_cookie_request(self):
 
-        os.remove("cookies.cok")
         if os.path.exists("cookies.cok"):
             cok = open("cookies.cok", "r")
             cookies = pickle.load(cok)
@@ -72,7 +70,6 @@ class WeiboLogin(object):
                 'code': code,
                 'capId': capid,
                 'submit': u'登录'}
-        print data
         login_post = cok_requests.post(self.new_url, data=data)  # 登陆post
         write_log(text=login_post.content)
         return login_post

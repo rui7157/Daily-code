@@ -49,9 +49,7 @@ class LoginWeibo(object):
 
         cookie = cookielib.MozillaCookieJar("Cookie.txt")
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
-
         result = opener.open(login_url, urllib.urlencode(postdata))
-
         cookie.save(ignore_discard=True, ignore_expires=True)
 
         html = opener.open(

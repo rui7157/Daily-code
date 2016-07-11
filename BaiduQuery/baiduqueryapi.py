@@ -3,12 +3,13 @@ import requests
 import re
 import os
 import time
+from threading import Thread
 from gevent import monkey
 monkey.patch_socket()
 import gevent
 
 
-class Query(object):
+class Query():
 
     def __init__(self, key, url):
         if all([isinstance(key, list), isinstance(url, list)]):
@@ -30,9 +31,13 @@ class Query(object):
                         print url, index
                         self.result[key] = [url, index + 1]
 
-    def start(self):
-        gevent.joinall(
-            [gevent.spawn(self.__request, key.replace("\n", "")) for key in self.key])
+    def start(self,concurrent=False):
+        if not concurrent:
+            for key in self.key:
+                self.__request(key)
+        else:
+            gevent.joinall(
+                [gevent.spawn(self.__request, key.replace("\n", "")) for key in self.key])
         return self.result
 
 
@@ -49,3 +54,4 @@ if __name__ == "__main__":
             f.write(wrt_data)
     print u"查询完成，文件保存在{path}.".format(path=os.path.join(str(dirpath), "BaiduQuery.txt"))
     print u"耗时%fs" % (time.time() - st_time)
+    raw_input(u"按任意键退出……".encode("gbk"))
