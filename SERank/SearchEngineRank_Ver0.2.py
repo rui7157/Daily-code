@@ -60,7 +60,7 @@ def generate_xls(urls, keys, result,filename):
 
 class Query(Thread):
     result = list()
-    def __init__(self, key, url,Qobj):
+    def __init__(self, key, url, Qobj):
         Thread.__init__(self)
         if all([isinstance(key, list), isinstance(url, list)]):
             self.key = key
@@ -69,32 +69,56 @@ class Query(Thread):
             raise ValueError
         self.Qobj=Qobj
         self.count=0
-    def __request(self, key,se, rn=5):
+    def _request(self, key,se, rn=5,mobile=False):
+        header={"User-Agent":"Mozilla/5.0 (Linux; U; Android 4.4.2; zh-CN; Lenovo A808t Build/KOT49H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 UCBrowser/10.8.5.689 U3/0.8.0 Mobile Safari/534.30"}
         for pn in xrange(0,rn):
             try:
                 if se=="baidu":
-                    #百度搜索
-                    print u"百度:{}".format(key)
-                    baidu_single_page = requests.get(
-                        "http://www.baidu.com/s?wd={key}&pn={pn}".format(key=key, pn=pn*10),timeout=15)
-                    baiduurl_class_div = re.findall(
-                        r'class="c-showurl"(.*?)</a>', baidu_single_page.text)
+                     #百度搜索
+                    if self.Qobj.isMobile.checkState():
+                        print u"手机百度:{}".format(key)
+                        baidu_single_page = requests.get(
+                            "https://m.baidu.com/s?&pn={pn}&word={key}".format(key=key, pn=pn*10),headers=header,timeout=15)
+                        baiduurl_class_div = re.findall(
+                            r"'order':'\w+','mu':'(.*?)'}", baidu_single_page.text)
+                    else:
+                        print u"百度:{}".format(key)
+                        baidu_single_page = requests.get(
+                            "http://www.baidu.com/s?wd={key}&pn={pn}".format(key=key, pn=pn*10),timeout=15)
+                        baiduurl_class_div = re.findall(
+                            r'class="c-showurl"(.*?)</a>', baidu_single_page.text)
                     
                 elif se=="qihu":
                     #360搜索
-                    print u"360搜索:{}".format(key)
-                    baidu_single_page = requests.get(
-                        "https://www.so.com/s?q={key}&pn={pn}".format(key=key, pn=pn+1),timeout=15)
-                    baiduurl_class_div = re.findall(
-                        r'<cite>(.*?)</cite>', baidu_single_page.text)
+                    if self.Qobj.isMobile.checkState():
+                        # <cite class="res-source">m.wenda.so.com</cite>
+                        #http://m.so.com/s?q={key}&src=3600w&mode=jisu&pn=2
+                        print u"手机360搜索:{}".format(key)
+                        baidu_single_page = requests.get(
+                            "http://m.so.com/s?q={key}&src=3600w&mode=jisu&pn={pn}".format(key=key, pn=pn+1),headers=header,timeout=15)
+                        baiduurl_class_div = re.findall(
+                            r'<cite class="res-source">(.*?)</cite>', baidu_single_page.text)                   
+                    else:
+                        print u"360搜索:{}".format(key)
+                        baidu_single_page = requests.get(
+                            "https://www.so.com/s?q={key}&pn={pn}".format(key=key, pn=pn+1),timeout=15)
+                        baiduurl_class_div = re.findall(
+                            r'<cite>(.*?)</cite>', baidu_single_page.text)
                     
                 elif se=="sousou":
                     #搜狗
-                    print u"搜狗:{}".format(key)
-                    baidu_single_page = requests.get(
-                        "https://www.sogou.com/web?query={key}&page={pn}".format(key=key, pn=pn+1),timeout=15)
-                    baiduurl_class_div = re.findall(
-                        r'<cite id="cacheresult_info([\s\S]*?)</cite>', baidu_single_page.text)
+                    if self.Qobj.isMobile.checkState():
+                        print u"手机搜狗:{}".format(key)
+                        baidu_single_page = requests.get("http://m.sogou.com/web/search/ajax_query.jsp?&keyword={key}&p={pn}".format(key=key, pn=pn+1),headers=header,timeout=15)
+                        baiduurl_class_div = re.findall(
+                        r'<div class="citeurl">([\s\S]*?)</div>', baidu_single_page.text)
+
+                    else:
+                        print u"搜狗:{}".format(key)
+                        baidu_single_page = requests.get(
+                            "https://www.sogou.com/web?query={key}&page={pn}".format(key=key, pn=pn+1),timeout=15)
+                        baiduurl_class_div = re.findall(
+                            r'<cite id="cacheresult_info([\s\S]*?)</cite>', baidu_single_page.text)
 
                 elif se=="shenma":
                     #神马搜索
@@ -104,8 +128,10 @@ class Query(Thread):
                         "http://m.sm.cn/s?q={key}&page={pn}".format(key=key, pn=pn+1),headers=header,timeout=15)
                     baiduurl_class_div = re.findall(
                         r'<div class="other">(.*?)</div></div>', baidu_single_page.text)
+
             except requests.models.ConnectionError:
                 print u"关键词:{}，第{}页，页面请求超时已经跳过!".format(key,str(pn+1)) #处理请求超时
+
             if baiduurl_class_div:
                 for url in self.url:
                     for index, d in enumerate(baiduurl_class_div):
@@ -120,14 +146,14 @@ class Query(Thread):
 
     def run(self):
         if self.Qobj.se == "qihu":
-            #360搜索快速会封IP，因此关闭异步高速请求
+            #360搜索快速会封IP，因此关闭异步高速网络请求
             print u"360搜索防屏蔽开始慢速模式，请耐心等待..."
             for key in self.key:
-                self.__request(key,"qihu")
+                self._request(key,"qihu")
                 time.sleep(3) #加入搜索延时
         else:
             #异步
-            gevent.joinall([gevent.spawn(self.__request, key,self.Qobj.se) for key in self.key])
+            gevent.joinall([gevent.spawn(self._request, key,self.Qobj.se) for key in self.key])
         print "*"*20
         print u"本次搜索完毕"
         print "*"*20
@@ -137,7 +163,7 @@ class Query(Thread):
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(900,700)
+        Form.resize(898,700)
         self.gridLayout = QtGui.QGridLayout(Form)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.baidu=QtGui.QRadioButton(Form)
@@ -148,6 +174,8 @@ class Ui_Form(object):
         self.sousou.setObjectName(_fromUtf8("sousou"))
         self.shenma=QtGui.QRadioButton(Form)
         self.shenma.setObjectName(_fromUtf8("shenma"))
+        self.isMobile=QtGui.QCheckBox(_fromUtf8("mobile"))
+        self.isMobile.setObjectName(_fromUtf8("mobile"))
         self.l_se=QtGui.QLabel(Form)
         self.l_se.setObjectName(_fromUtf8("label_0"))
         self.gridLayout.addWidget(self.l_se,0,0,1,1)
@@ -155,36 +183,37 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.qihu, 0, 2, 1, 1)
         self.gridLayout.addWidget(self.sousou, 0, 3, 1, 1)
         self.gridLayout.addWidget(self.shenma, 0, 4, 1, 1)
+        self.gridLayout.addWidget(self.isMobile,0,6,1,1)
         self.textEdit_2 = QtGui.QTextEdit(Form)
         self.textEdit_2.setObjectName(_fromUtf8("textEdit_2"))
-        self.gridLayout.addWidget(self.textEdit_2, 2, 2, 1, 2)
+        self.gridLayout.addWidget(self.textEdit_2, 2, 3, 1, 3)
         self.textEdit = QtGui.QTextEdit(Form)
         self.textEdit.setObjectName(_fromUtf8("textEdit"))
-        self.gridLayout.addWidget(self.textEdit, 2, 0, 1, 2)
+        self.gridLayout.addWidget(self.textEdit, 2, 0, 1, 3)
         self.tableView = QtGui.QTableWidget(Form)
         self.tableView.setObjectName(_fromUtf8("tableView"))
         self.tableView.setColumnCount(3)
         self.tableView.setColumnWidth(0,150)
         self.tableView.setHorizontalHeaderLabels([u"关键词",u"网址",u"结果"])
-        self.gridLayout.addWidget(self.tableView, 2, 4, 1, 1)
+        self.gridLayout.addWidget(self.tableView, 2, 6, 1, 1)
         self.label_3 = QtGui.QLabel(Form)
         self.label_3.setObjectName(_fromUtf8("label_3"))
-        self.gridLayout.addWidget(self.label_3, 1, 4, 1, 1)
+        self.gridLayout.addWidget(self.label_3, 1, 6, 1, 1)
         self.label = QtGui.QLabel(Form)
         self.label.setObjectName(_fromUtf8("label"))
-        self.gridLayout.addWidget(self.label, 1, 2, 1, 2)
+        self.gridLayout.addWidget(self.label, 1, 3, 1, 2)
         self.label_2 = QtGui.QLabel(Form)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout.addWidget(self.label_2, 1, 0, 1, 2)
         self.pushButton = QtGui.QPushButton(Form)
         self.pushButton.setObjectName(_fromUtf8("pushButton"))
-        self.gridLayout.addWidget(self.pushButton, 3, 0, 1, 2)
+        self.gridLayout.addWidget(self.pushButton, 3, 2, 1, 1)
         self.pushButton_2 = QtGui.QPushButton(Form)
         self.pushButton_2.setObjectName(_fromUtf8("pushButton_2"))
-        self.gridLayout.addWidget(self.pushButton_2, 3, 2, 1, 2)
+        self.gridLayout.addWidget(self.pushButton_2, 3, 3, 1, 1)
         self.pushButton_3 = QtGui.QPushButton(Form)
         self.pushButton_3.setObjectName(_fromUtf8("pushButton_3"))
-        self.gridLayout.addWidget(self.pushButton_3, 3, 4, 1, 1)
+        self.gridLayout.addWidget(self.pushButton_3, 3, 6, 1, 1)
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
@@ -197,9 +226,10 @@ class Ui_Form(object):
         self.l_se.setText(_translate("Form", "搜索引擎：", None))
         self.baidu.setText(_translate("Form", "百度", None))
         self.qihu.setText(_translate("Form", "360", None))
-        self.sousou.setText(_translate("Form", "搜搜", None))
+        self.sousou.setText(_translate("Form", "搜狗", None))
         self.shenma.setText(_translate("Form", "神马", None))
-        self.pushButton_2.setText(_translate("Form", "清楚数据", None))
+        self.isMobile.setText(_translate("Form","手机端",None))
+        self.pushButton_2.setText(_translate("Form", "清除数据", None))
         self.pushButton_3.setText(_translate("Form", "保存", None))
 
 class MainGui(QtGui.QWidget,Ui_Form):
@@ -208,11 +238,14 @@ class MainGui(QtGui.QWidget,Ui_Form):
         self.setupUi(self)
         self.setStyleSheet(qdarkstyle.load_stylesheet())
         self.baidu.setChecked(True)
+        self.isMobile.setStyleSheet("color:#FFD700") 
         self.connect(self.pushButton,QtCore.SIGNAL("clicked()"),self.query)
         self.connect(self.pushButton_3,QtCore.SIGNAL("clicked()"),self.saveData)
         self.connect(self.pushButton_2,QtCore.SIGNAL("clicked()"),self.cls)
         self.se="baidu"
+
     def query(self):
+        
         keys=str(self.textEdit.toPlainText()).split("\n") #分行转换数列
         urls=str(self.textEdit_2.toPlainText()).split("\n")
         urls=[u[:-1].replace("http://","").replace("www.","") if u.strip()[-1:]=="/" else u.replace("http://"," ").replace("www.","") for u in urls] #处理用户输入字符串
@@ -224,7 +257,7 @@ class MainGui(QtGui.QWidget,Ui_Form):
         for t in ["baidu","qihu","sousou","shenma"]:
             if getattr(self,t).isChecked():
                 self.se=t
-        self.q_thread=Query(keys,urls,self)
+        self.q_thread=Query(keys,urls,self) #传递 ”1.关键字 2.网址 3.是否移动端“ 参数
         self.q_thread.start()
     def cls(self):
         """清除数据"""
@@ -234,7 +267,7 @@ class MainGui(QtGui.QWidget,Ui_Form):
         if hasattr(self,"q_thread"):
             del self.q_thread 
                    
-        QtGui.QMessageBox.information(self,u"提示",u"清楚数据成功！")
+        QtGui.QMessageBox.information(self,u"提示",u"清除数据成功！")
         
     def saveData(self):
         u=[] #存放URL的数列
