@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Date    : 2016-04-16 09:51:21
-# @Author  : Your Name (nvray@foxmail.com)
-# @Link    :
-# @Version : $Id$
 
 import time
 import urllib2,urllib
