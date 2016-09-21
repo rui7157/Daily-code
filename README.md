@@ -21,14 +21,14 @@
     3. 空行数
     
 * wxPython开发GUI界面
-* 展示![demo](/Daily-code/CodeStatistics/demo.png)
+* 展示![demo](/CodeStatistics/demo.png)
 
 > DefinedWallpaper **自定义桌面壁纸**
 
 * 根据选择路径设置壁纸，并输入文字文字将显示在壁纸上
 * 用于在桌面显示笔记
 * 使用PyQt4制作GUi界面
-* 展示![demo](/Daily-code/DefinedWallpaper/demo.png)
+* 展示![demo](/DefinedWallpaper/demo.png)
 
 > hospital **医院网站爬虫**
 
@@ -71,8 +71,8 @@
 * 可以查询手机端排名
 * PyQt4制作的GUI界面
 * 展示 
-    * ![demo](/Daily-code/BaiduQuery/demo.gif)
-    * ![demo2](/Daily-code/BaiduQuery/demo2.gif)
+    * ![demo](/SERank/demo.gif)
+    * ![demo2](/SERank/demo2.gif)
 
 > spiderITEbook **IT书籍爬取**
 
