@@ -59,7 +59,6 @@ class News(object):
                 nowtime=curren_time.strftime('%Y%m%d'), datatype=datatype)
             js_retuen_val = requests.get(url, timeout=15).text
             for single_data in json.loads(re.findall("var news_ = (.*?);", js_retuen_val)[0]).get(u"data"):
-                # print single_data.get(u"title"), single_data.get(u"url")
                 web_body = requests.get(single_data.get(u"url")).content
                 print single_data.get(u"title").encode("gbk", "ignore") 
                 try:
@@ -78,7 +77,6 @@ class News(object):
         url = "http://news.163.com/rank/"
         web = requests.get(url, timeout=15).content
         for content in re.findall(r'<td class="[a-z]*?"><span>[0-9]*?</span><a href="(.*?)">(.*?)</a></td>', web):
-            # print content[1], content[0]
             web_body = requests.get(content[0]).content
             try:
                 body = re.compile(r"<.*?>").sub("", re.search(r'<div class="post_text" id="endText">([.\s\S]*?)</div>', web_body).group(
