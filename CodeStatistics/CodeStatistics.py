@@ -55,7 +55,7 @@ def isdir(paths,files):
             hasdir=True
             dirAll+=glob.glob(f+os.sep+"*")
         else:
-            if f[-3:]==".php":
+            if f[-3:]==".py":
                 files.append(f)
     if not hasdir:
         return files
