@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+   <head>
+   <meta charset="utf-8">
+   <title>日志平台</title>
+
+      <script type="text/javascript">
+         function WebSocketTest(sendData)
+         {
+            if ("WebSocket" in window)
+            {
+               // 打开一个 web socket
+               var ws = new WebSocket("ws://localhost:9998/");
+
+               ws.onopen = function()
+               {
+                  // Web Socket 已连接上，使用 send() 方法发送数据
+                  ws.send(sendData);
+                  alert("数据发送中...");
+               };
+
+               ws.onmessage = function (evt)
+               {
+                  var received_msg = evt.data;
+                  var ul = document.getElementById('msgList');
+                  var li =  document.createElement('li');
+                  var msgDiv = document.getElementById('message');
+                  li.innerHTML = received_msg;
+                  ul.appendChild(li);
+                  msgDiv.scrollTop = msgDiv.scrollHeight;
+               };
+
+               ws.onclose = function()
+               {
+                  // 关闭 websocket
+                  alert("连接已关闭...");
+               };
+            }
+
+            else
+            {
+               // 浏览器不支持 WebSocket
+               alert("您的浏览器不支持 WebSocket!");
+            }
+         }
+        function clr() {
+             alert("已清空数据");
+            document.getElementById('msgList').innerHTML="";
+        };
+        window.onresize = function(){
+             var msgDiv = document.getElementById("message");
+             msgDiv.style.height = document.documentElement.clientHeight-20+"px";
+        };
+
+        window.onload = function () {
+                         var msgDiv = document.getElementById("message");
+             msgDiv.style.height = document.documentElement.clientHeight-20+"px";
+        }
+
+      </script>
+    <style>
+
+        body{
+            height: 100%;
+            background: black;
+            /*color: aliceblue;*/
+            /*font-family: 'Open Sans','Helvetica Neue',Arial,'Hiragino Sans GB','Microsoft YaHei','WenQuanYi Micro Hei',sans-serif;*/
+            font-size: small;
+            background-size: cover;
+            z-index: 0;
+            overflow: hidden;
+            color: #83f352;
+            font-family: 'Open Sans','Helvetica Neue',Arial,'Hiragino Sans GB','Microsoft YaHei','WenQuanYi Micro Hei',sans-serif;
+            font-weight: bold;
+            text-shadow: 0.1em 0.1em 0.2em #83f352;
+            /*cursor: none;*/
+        }
+        ul{
+
+        }
+        #message{
+            /*height: 960px;*/
+            overflow:auto;
+        }
+        li{
+            float:none;
+            list-style-type:none;
+        }
+        .radar{
+        position:fixed;
+        top: 5%;
+        right: 5%;
+        text-align:center;
+        color:#F00;
+        }
+        .radar img {
+        clear:both;
+        width:250px;
+        }
+
+
+    </style>
+   </head>
+   <body>
+
+      <div id="sse">
+          <a href="javascript:WebSocketTest('测试数据')">Open Log Terminal</a><span><a href="javascript:clr('测试数据')">Clear Data</a></span>
+      </div>
+
+    <div id = "message">
+        <ul id = "msgList">
+            <li><strong>Log Terminal Start:</strong></li>
+        </ul>
+    </div>
+
+   </body>
+</html>
